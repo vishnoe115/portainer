@@ -8,7 +8,7 @@ import './matomo-setup';
 import analyticsModule from './angulartics.matomo';
 
 import './agent';
-import './azure/_module';
+import azureModule from './azure';
 import './docker/__module';
 import './edge/__module';
 import './portainer/__module';
@@ -37,7 +37,7 @@ angular
     'luegg.directives',
     'portainer.app',
     'portainer.agent',
-    'portainer.azure',
+    azureModule,
     'portainer.docker',
     'portainer.kubernetes',
     'portainer.edge',
