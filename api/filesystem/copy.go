@@ -34,6 +34,7 @@ func CopyDir(fromDir, toDir string, keepParent bool) error {
 		if err != nil {
 			return err
 		}
+
 		var destination string
 		if keepParent {
 			destination = filepath.Join(toDir, strings.TrimPrefix(path, parentDirectory))
