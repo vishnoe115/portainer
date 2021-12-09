@@ -353,6 +353,8 @@ type (
 		AllowSysctlSettingForRegularUsers bool `json:"allowSysctlSettingForRegularUsers" example:"true"`
 		// Whether host management features are enabled
 		EnableHostManagementFeatures bool `json:"enableHostManagementFeatures" example:"true"`
+		// Security token AGENT_SECRET
+		AgentSecret string `json:"AgentSecret,omitempty"`
 	}
 
 	// EndpointType represents the type of an environment(endpoint)
