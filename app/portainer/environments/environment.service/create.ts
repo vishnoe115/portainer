@@ -1,7 +1,5 @@
-import { AxiosError } from 'axios';
-
 import PortainerError from '@/portainer/error';
-import axios from '@/portainer/services/axios';
+import axios, { parseAxiosError } from '@/portainer/services/axios';
 import { type EnvironmentGroupId } from '@/portainer/environment-groups/types';
 import { type TagId } from '@/portainer/tags/types';
 
@@ -190,11 +188,6 @@ async function createEndpoint(
 
     return endpoint;
   } catch (e) {
-    const axiosError = e as AxiosError;
-    if (!axiosError.isAxiosError) {
-      throw e;
-    }
-
-    throw new Error(axiosError.response?.data.message);
+    throw parseAxiosError(e as Error);
   }
 }
