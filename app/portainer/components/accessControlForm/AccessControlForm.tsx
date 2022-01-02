@@ -45,22 +45,34 @@ export function AccessControlForm({
     (partialValues: Partial<typeof values>) => {
       onChange({ ...values, ...partialValues });
     },
-    [onChange, values]
+
+    [values, onChange]
   );
 
+  // TODO should be done at the using component. something like `mergeResourceControl(resourceControl, isAdmin)
   useEffect(() => {
-    let ownership = resourceControl.Ownership;
-    if (isAdmin && ownership === RCO.PRIVATE) {
-      ownership = RCO.RESTRICTED;
+    if (!resourceControl && isAdmin) {
+      handleChange({ Ownership: RCO.ADMINISTRATORS });
     }
 
-    let accessControl = true;
-    if (ownership === RCO.PUBLIC) {
-      accessControl = false;
-    }
+    if (resourceControl) {
+      let ownership = resourceControl.Ownership;
+      if (isAdmin && ownership === RCO.PRIVATE) {
+        ownership = RCO.RESTRICTED;
+      }
 
-    handleChange({ Ownership: ownership, AccessControlEnabled: accessControl });
-  }, [resourceControl, isAdmin, handleChange]);
+      let accessControl = true;
+      if (ownership === RCO.PUBLIC) {
+        accessControl = false;
+      }
+
+      handleChange({
+        Ownership: ownership,
+        AccessControlEnabled: accessControl,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resourceControl]);
 
   return (
     <>

@@ -419,3 +419,23 @@ test('when resource control supplied, if ownership is public, will disabled acce
     AccessControlEnabled: false,
   });
 });
+
+test('when isAdmin and resource control not supplied, ownership should be set to Administrator', () => {
+  const values = {
+    AccessControlEnabled: true,
+    Ownership: RCO.PUBLIC,
+    AuthorizedTeams: [],
+    AuthorizedUsers: [],
+  };
+
+  const onChangeHandler = jest.fn();
+
+  renderComponent(values, onChangeHandler, {
+    isAdmin: true,
+  });
+
+  expect(onChangeHandler).toHaveBeenCalledWith({
+    ...values,
+    Ownership: RCO.ADMINISTRATORS,
+  });
+});
