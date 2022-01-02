@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 import { ResourceControlOwnership as RCO } from '@/portainer/models/resourceControl/resourceControlOwnership';
 import { UserContext } from '@/portainer/hooks/useUser';
 import { UserViewModel } from '@/portainer/models/user';
@@ -9,6 +7,7 @@ import { ResourceControlViewModel } from '@/portainer/models/resourceControl/res
 
 import { AccessControlForm } from './AccessControlForm';
 import { AccessControlFormData } from './model';
+import { createMockTeams } from './AccessControlForm.mocks';
 
 test('renders correctly', async () => {
   const values: AccessControlFormData = new AccessControlFormData();
@@ -223,10 +222,7 @@ test('when user is not an admin, access control is enabled, there are more then 
     ownership: RCO.RESTRICTED,
   };
 
-  const teams: Team[] = _.range(Math.random() * 10 + 1).map((value) => ({
-    Id: value,
-    Name: `team${value}`,
-  }));
+  const teams = createMockTeams(10);
 
   const { queryByRole, queryByLabelText } = renderComponent(values, jest.fn(), {
     teams,
@@ -260,11 +256,7 @@ test('when user is not an admin, access control is enabled, there is 1 team and 
     ...new AccessControlFormData(),
     ownership: RCO.RESTRICTED,
   };
-
-  const teams: Team[] = _.range(Math.random() + 1).map((value) => ({
-    Id: value,
-    Name: `team${value}`,
-  }));
+  const teams = createMockTeams(1);
 
   const { queryByRole, queryByLabelText } = renderComponent(values, jest.fn(), {
     teams,
