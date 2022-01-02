@@ -8,15 +8,10 @@ import { Team } from '@/portainer/teams/types';
 import { ResourceControlViewModel } from '@/portainer/models/resourceControl/resourceControl';
 
 import { AccessControlForm } from './AccessControlForm';
-import { AccessControlFormData } from './porAccessControlFormModel';
+import { AccessControlFormData } from './model';
 
 test('renders correctly', async () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: '',
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
-  };
+  const values: AccessControlFormData = new AccessControlFormData();
 
   const { queryByText, queryByLabelText } = renderComponent(values);
 
@@ -26,11 +21,8 @@ test('renders correctly', async () => {
 });
 
 test('when AccessControlEnabled is true, ownership selector should be visible', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: '',
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
   };
 
   const { queryByRole } = renderComponent(values);
@@ -39,11 +31,9 @@ test('when AccessControlEnabled is true, ownership selector should be visible', 
 });
 
 test('when AccessControlEnabled is false, ownership selector should be hidden', () => {
-  const values = {
-    AccessControlEnabled: false,
-    Ownership: '',
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
+    accessControlEnabled: false,
   };
 
   const { queryByRole } = renderComponent(values);
@@ -52,11 +42,8 @@ test('when AccessControlEnabled is false, ownership selector should be hidden', 
 });
 
 test('when hideTitle is true, title should be hidden', () => {
-  const values = {
-    AccessControlEnabled: false,
-    Ownership: '',
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
   };
 
   const { queryByText } = renderComponent(values, jest.fn(), {
@@ -67,11 +54,8 @@ test('when hideTitle is true, title should be hidden', () => {
 });
 
 test('when isAdmin and AccessControlEnabled, ownership selector should admin and restricted options', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: '',
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
   };
 
   const { queryByRole } = renderComponent(values, jest.fn(), { isAdmin: true });
@@ -89,11 +73,9 @@ test('when isAdmin and AccessControlEnabled, ownership selector should admin and
 });
 
 test('when isAdmin, AccessControlEnabled and admin ownership is selected, no extra options are visible', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.ADMINISTRATORS,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
+    ownership: RCO.ADMINISTRATORS,
   };
 
   const { queryByRole, queryByLabelText } = renderComponent(values, jest.fn(), {
@@ -117,11 +99,9 @@ test('when isAdmin, AccessControlEnabled and admin ownership is selected, no ext
 });
 
 test('when isAdmin, AccessControlEnabled and restricted ownership is selected, show team and users selectors', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.RESTRICTED,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
+    ownership: RCO.RESTRICTED,
   };
 
   const { queryByRole, queryByLabelText } = renderComponent(values, jest.fn(), {
@@ -169,10 +149,6 @@ function renderComponent(
     users = [],
     isAdmin = false,
     hideTitle = false,
-    resourceControl = new ResourceControlViewModel({
-      UserAccesses: [],
-      TeamAccesses: [],
-    }),
   }: AdditionalProps = {}
 ) {
   const user = new UserViewModel({ Username: 'user', Role: isAdmin ? 1 : 2 });
@@ -182,7 +158,6 @@ function renderComponent(
     <UserContext.Provider value={state}>
       <AccessControlForm
         values={values}
-        resourceControl={resourceControl}
         onChange={onChange}
         hideTitle={hideTitle}
         teams={teams}
@@ -195,14 +170,14 @@ function renderComponent(
 }
 
 test('when user is not an admin and access control is enabled and no teams, should have only private option', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.ADMINISTRATORS,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
   };
 
-  const { queryByRole } = renderComponent(values, jest.fn(), { teams: [] });
+  const { queryByRole } = renderComponent(values, jest.fn(), {
+    teams: [],
+    isAdmin: false,
+  });
 
   const ownershipSelector = queryByRole('radiogroup');
 
@@ -218,16 +193,16 @@ test('when user is not an admin and access control is enabled and no teams, shou
 });
 
 test('when user is not an admin and access control is enabled and there is 1 team, should have private and restricted options', async () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.ADMINISTRATORS,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
   };
 
   const teams: Team[] = [{ Id: 1, Name: 'team1' }];
 
-  const { queryByRole } = renderComponent(values, jest.fn(), { teams });
+  const { queryByRole } = renderComponent(values, jest.fn(), {
+    teams,
+    isAdmin: false,
+  });
 
   const ownershipSelector = queryByRole('radiogroup');
 
@@ -243,11 +218,9 @@ test('when user is not an admin and access control is enabled and there is 1 tea
 });
 
 test('when user is not an admin, access control is enabled, there are more then 1 team and ownership is restricted, team selector should be visible', async () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.RESTRICTED,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
+    ownership: RCO.RESTRICTED,
   };
 
   const teams: Team[] = _.range(Math.random() * 10 + 1).map((value) => ({
@@ -283,11 +256,9 @@ test('when user is not an admin, access control is enabled, there are more then 
 });
 
 test('when user is not an admin, access control is enabled, there is 1 team and ownership is restricted, team selector should be visible', async () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.RESTRICTED,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
+  const values: AccessControlFormData = {
+    ...new AccessControlFormData(),
+    ownership: RCO.RESTRICTED,
   };
 
   const teams: Team[] = _.range(Math.random() + 1).map((value) => ({
@@ -320,122 +291,4 @@ test('when user is not an admin, access control is enabled, there is 1 team and 
 
   const extraQueries = within(extraOptions);
   expect(extraQueries.queryByLabelText(/Authorized teams/)).toBeVisible();
-});
-
-test('when resource control supplied, if user is admin and resource ownership is private, will change ownership to restricted', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.PRIVATE,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
-  };
-
-  const resourceControl = new ResourceControlViewModel({
-    UserAccesses: [],
-    TeamAccesses: [],
-  });
-  resourceControl.Ownership = RCO.PRIVATE;
-
-  const onChangeHandler = jest.fn();
-
-  renderComponent(values, onChangeHandler, { isAdmin: true, resourceControl });
-
-  expect(onChangeHandler).toHaveBeenCalledWith({
-    ...values,
-    Ownership: RCO.RESTRICTED,
-  });
-});
-
-test('when resource control supplied, if user is not admin , will change ownership to rc ownership', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.ADMINISTRATORS,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
-  };
-
-  const resourceControl = new ResourceControlViewModel({
-    UserAccesses: [],
-    TeamAccesses: [],
-  });
-  resourceControl.Ownership = RCO.PRIVATE;
-
-  const onChangeHandler = jest.fn();
-
-  renderComponent(values, onChangeHandler, { isAdmin: false, resourceControl });
-
-  expect(onChangeHandler).toHaveBeenCalledWith({
-    ...values,
-    Ownership: resourceControl.Ownership,
-  });
-});
-
-test('when resource control supplied, if resource ownership is not private (and user admin) , will change ownership to rc ownership', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.ADMINISTRATORS,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
-  };
-
-  const resourceControl = new ResourceControlViewModel({
-    UserAccesses: [],
-    TeamAccesses: [],
-  });
-  resourceControl.Ownership = RCO.RESTRICTED;
-
-  const onChangeHandler = jest.fn();
-
-  renderComponent(values, onChangeHandler, { isAdmin: true, resourceControl });
-
-  expect(onChangeHandler).toHaveBeenCalledWith({
-    ...values,
-    Ownership: resourceControl.Ownership,
-  });
-});
-
-test('when resource control supplied, if ownership is public, will disabled access control', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.PUBLIC,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
-  };
-
-  const resourceControl = new ResourceControlViewModel({
-    UserAccesses: [],
-    TeamAccesses: [],
-  });
-  resourceControl.Ownership = RCO.PUBLIC;
-
-  const onChangeHandler = jest.fn();
-
-  renderComponent(values, onChangeHandler, {
-    resourceControl,
-  });
-
-  expect(onChangeHandler).toHaveBeenCalledWith({
-    ...values,
-    AccessControlEnabled: false,
-  });
-});
-
-test('when isAdmin and resource control not supplied, ownership should be set to Administrator', () => {
-  const values = {
-    AccessControlEnabled: true,
-    Ownership: RCO.PUBLIC,
-    AuthorizedTeams: [],
-    AuthorizedUsers: [],
-  };
-
-  const onChangeHandler = jest.fn();
-
-  renderComponent(values, onChangeHandler, {
-    isAdmin: true,
-  });
-
-  expect(onChangeHandler).toHaveBeenCalledWith({
-    ...values,
-    Ownership: RCO.ADMINISTRATORS,
-  });
 });

@@ -10,9 +10,8 @@ import { UserViewModel } from '@/portainer/models/user';
 import { BoxSelectorOption } from '@/portainer/components/BoxSelector/types';
 import { FormSectionTitle } from '@/portainer/components/form-components/FormSectionTitle';
 import { SwitchField } from '@/portainer/components/form-components/SwitchField';
-import { ResourceControlViewModel } from '@/portainer/models/resourceControl/resourceControl';
 
-import { AccessControlFormData } from './porAccessControlFormModel';
+import { AccessControlFormData } from './model';
 import { UsersField } from './UsersField';
 import { TeamsField } from './TeamsField';
 
@@ -20,7 +19,6 @@ export interface BaseProps {
   values: AccessControlFormData;
   onChange(values: AccessControlFormData): void;
   hideTitle?: boolean;
-  resourceControl: ResourceControlViewModel;
 }
 
 interface Props extends BaseProps {
@@ -34,12 +32,11 @@ export function AccessControlForm({
   hideTitle,
   users,
   teams,
-  resourceControl,
 }: Props) {
   const { user } = useUser();
   const isAdmin = user?.Role === 1;
 
-  const options: BoxSelectorOption<string>[] = useOptions(isAdmin, teams);
+  const options = useOptions(isAdmin, teams);
 
   const handleChange = useCallback(
     (partialValues: Partial<typeof values>) => {
@@ -49,31 +46,6 @@ export function AccessControlForm({
     [values, onChange]
   );
 
-  // TODO should be done at the using component. something like `mergeResourceControl(resourceControl, isAdmin)
-  useEffect(() => {
-    if (!resourceControl && isAdmin) {
-      handleChange({ Ownership: RCO.ADMINISTRATORS });
-    }
-
-    if (resourceControl) {
-      let ownership = resourceControl.Ownership;
-      if (isAdmin && ownership === RCO.PRIVATE) {
-        ownership = RCO.RESTRICTED;
-      }
-
-      let accessControl = true;
-      if (ownership === RCO.PUBLIC) {
-        accessControl = false;
-      }
-
-      handleChange({
-        Ownership: ownership,
-        AccessControlEnabled: accessControl,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resourceControl]);
-
   return (
     <>
       {!hideTitle && <FormSectionTitle>Access control</FormSectionTitle>}
@@ -81,43 +53,43 @@ export function AccessControlForm({
       <div className="form-group">
         <div className="col-sm-12">
           <SwitchField
-            checked={values.AccessControlEnabled}
+            checked={values.accessControlEnabled}
             name="ownership"
             label="Enable access control"
             tooltip="When enabled, you can restrict the access and management of this resource."
-            onChange={(AccessControlEnabled) =>
-              handleChange({ AccessControlEnabled })
+            onChange={(accessControlEnabled) =>
+              handleChange({ accessControlEnabled })
             }
           />
         </div>
       </div>
 
-      {values.AccessControlEnabled && (
+      {values.accessControlEnabled && (
         <>
           <div className="form-group">
             <BoxSelector
               radioName="access-control"
-              value={values.Ownership}
+              value={values.ownership}
               options={options}
-              onChange={(Ownership) => handleChange({ Ownership })}
+              onChange={(ownership) => handleChange({ ownership })}
             />
           </div>
-          {values.Ownership === RCO.RESTRICTED && (
+          {values.ownership === RCO.RESTRICTED && (
             <div aria-label="extra-options">
               <UsersField
                 users={users}
-                onChange={(AuthorizedUsers) =>
-                  handleChange({ AuthorizedUsers })
+                onChange={(authorizedUsers) =>
+                  handleChange({ authorizedUsers })
                 }
-                value={values.AuthorizedUsers}
+                value={values.authorizedUsers}
               />
 
               <TeamsField
                 teams={teams}
-                onChange={(AuthorizedTeams) =>
-                  handleChange({ AuthorizedTeams })
+                onChange={(authorizedTeams) =>
+                  handleChange({ authorizedTeams })
                 }
-                value={values.AuthorizedTeams}
+                value={values.authorizedTeams}
               />
             </div>
           )}
@@ -128,7 +100,7 @@ export function AccessControlForm({
 }
 
 function useOptions(isAdmin: boolean, teams: Team[]) {
-  const [options, setOptions] = useState<Array<BoxSelectorOption<string>>>([]);
+  const [options, setOptions] = useState<Array<BoxSelectorOption<RCO>>>([]);
 
   useEffect(() => {
     setOptions(isAdmin ? adminOptions() : nonAdminOptions(teams));
@@ -144,14 +116,14 @@ function adminOptions() {
       ownershipIcon('administrators'),
       'Administrators',
       'I want to restrict the management of this resource to administrators only',
-      'administrators'
+      RCO.ADMINISTRATORS
     ),
     buildOption(
       'access_restricted',
       ownershipIcon('restricted'),
       'Restricted',
       'I want to restrict the management of this resource to a set of users and/or teams',
-      'restricted'
+      RCO.RESTRICTED
     ),
   ];
 }
@@ -162,7 +134,7 @@ function nonAdminOptions(teams: Team[]) {
       ownershipIcon('private'),
       'Private',
       'I want to this resource to be manageable by myself only',
-      'private'
+      RCO.PRIVATE
     ),
     teams.length > 0 &&
       buildOption(
@@ -172,7 +144,7 @@ function nonAdminOptions(teams: Team[]) {
         teams.length === 1
           ? `I want any member of my team (${teams[0].Name})  to be able to manage this resource`
           : 'I want to restrict the management of this resource to one or more of my teams',
-        'restricted'
+        RCO.RESTRICTED
       ),
   ]);
 }
